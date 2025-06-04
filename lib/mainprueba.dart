@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Datos API - Grupo apple6a',
+      title: 'Datos API - Grupo ibm6a',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         appBarTheme: const AppBarTheme(centerTitle: true, elevation: 4),
@@ -51,15 +51,15 @@ class _ApiDataViewerState extends State<ApiDataViewer>
 
   final Map<String, String> apiEndpoints = {
     'Sexos':
-        'https://educaysoft.org/apple6a/app/controllers/SexoController.php?action=api',
+        'https://educaysoft.org/ibm6a/app/controllers/SexoController.php?action=api',
     'Teléfonos':
-        'https://educaysoft.org/apple6a/app/controllers/TelefonoController.php?action=api',
+        'https://educaysoft.org/ibm6a/app/controllers/TelefonoController.php?action=api',
     'Estados Civiles':
-        'https://educaysoft.org/apple6a/app/controllers/EstadocivilController.php?action=api',
+        'https://educaysoft.org/ibm6a/app/controllers/EstadocivilController.php?action=api',
     'Direcciones':
-        'https://educaysoft.org/apple6a/app/controllers/DireccionController.php?action=api',
+        'https://educaysoft.org/ibm6a/app/controllers/DireccionController.php?action=api',
     'Personas':
-        'https://educaysoft.org/apple6a/app/controllers/PersonaController.php?action=api',
+        'https://educaysoft.org/ibm6a/app/controllers/PersonaController.php?action=api',
   };
 
   @override
@@ -119,7 +119,7 @@ class _ApiDataViewerState extends State<ApiDataViewer>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Datos API - Grupo apple6a'),
+        title: const Text('Datos API - Grupo ibm6a'),
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
@@ -332,7 +332,7 @@ class AboutTab extends StatelessWidget {
           const SizedBox(height: 20),
           const Center(
             child: Text(
-              'Grupo apple6a',
+              'Grupo ibm6a',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,

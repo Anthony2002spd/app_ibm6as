@@ -1,4 +1,4 @@
-package com.example.app_apple6a
+package com.example.app_ibm6a
 
 import io.flutter.embedding.android.FlutterActivity
 

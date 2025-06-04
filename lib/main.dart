@@ -1,5 +1,5 @@
 /*  ==============================================================
-    apple6a – Registro de Datos (main.dart)
+    Ibm6aphp – Registro de Datos (main.dart)
     App completa con todas las páginas y el rediseño de SexoPage
     Compatible con Flutter 3.32 (Material 3 activado)
     ============================================================== */
@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-    title: 'apple6a App',
+    title: 'Ibm6aphp App',
     theme: ThemeData(
       useMaterial3: true,
       colorSchemeSeed: Colors.blue,
@@ -47,7 +47,7 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('apple6a • Registro')),
+    appBar: AppBar(title: const Text('Ibm6aphp • Registro')),
     body: _pages[_selectedIndex],
     bottomNavigationBar: BottomNavigationBar(
       currentIndex: _selectedIndex,
@@ -146,39 +146,59 @@ class Persona {
 
 /* ───────────────────────────────────────────────  SEXO PAGE  ── */
 class SexoPage extends StatefulWidget {
-  const SexoPage({super.key});
+  const SexoPage({Key? key}) : super(key: key);
+
   @override
   State<SexoPage> createState() => _SexoPageState();
 }
 
-class _SexoPageState extends State<SexoPage> {
-  List<Sexo> _all = [], _filtered = [];
+class _SexoPageState extends State<SexoPage> with SingleTickerProviderStateMixin {
+  List<Sexo> _all = [];
+  List<Sexo> _filtered = [];
   bool _loading = true;
+
+  late final AnimationController _animController;
+  late final Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeIn,
+    );
     _fetch();
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetch() async {
     setState(() => _loading = true);
     try {
-      final r = await http.get(
+      final response = await http.get(
         Uri.parse(
-          'https://educaysoft.org/apple6a/app/controllers/SexoController.php?action=api',
+          'https://educaysoft.org/Ibm6aphp/app/controllers/SexoController.php?action=api',
         ),
       );
-      if (r.statusCode == 200) {
-        final data = (json.decode(r.body) as List)
+      if (response.statusCode == 200) {
+        final data = (json.decode(response.body) as List)
             .map((e) => Sexo.fromJson(e))
             .toList();
         setState(() {
           _all = data;
           _filtered = data;
         });
+        _animController.forward(from: 0.0);
       } else {
-        throw Exception('Error ${r.statusCode}');
+        throw Exception('Error ${response.statusCode}');
       }
     } catch (e) {
       debugPrint('Error Sexo: $e');
@@ -187,99 +207,178 @@ class _SexoPageState extends State<SexoPage> {
     }
   }
 
-  void _search(String q) => setState(
-    () => _filtered = _all
-        .where(
-          (s) =>
-              s.nombre.toLowerCase().contains(q.toLowerCase()) ||
-              s.idsexo.contains(q),
-        )
-        .toList(),
-  );
+  void _search(String query) {
+    final q = query.toLowerCase();
+    setState(() {
+      _filtered = _all.where((s) {
+        final nombreLower = s.nombre.toLowerCase();
+        final idLower = s.idsexo.toLowerCase();
+        return nombreLower.contains(q) || idLower.contains(q);
+      }).toList();
+      _animController.reset();
+      _animController.forward();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return RefreshIndicator(
-      onRefresh: _fetch,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: TextField(
-              onChanged: _search,
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: scheme.surfaceVariant,
-                prefixIcon: Icon(Icons.search, color: scheme.primary),
-                hintText: 'Buscar Sexo (nombre o ID)',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide.none,
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Catálogo de Sexos'),
+        centerTitle: true,
+        elevation: 2,
+        backgroundColor: theme.colorScheme.primary,
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              theme.colorScheme.surfaceVariant.withOpacity(0.03),
+              theme.colorScheme.surfaceVariant.withOpacity(0.09),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: RefreshIndicator(
+          onRefresh: _fetch,
+          color: theme.colorScheme.primary,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: TextField(
+                  onChanged: _search,
+                  decoration: InputDecoration(
+                    hintText: 'Buscar por nombre o ID...',
+                    prefixIcon: Icon(Icons.search, color: theme.colorScheme.primary),
+                    filled: true,
+                    fillColor: theme.colorScheme.surface,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
                 ),
               ),
-            ),
+              Expanded(
+                child: _loading
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 48,
+                              height: 48,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 3.5,
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Cargando datos...',
+                              style: theme.textTheme.bodyMedium
+                                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                            ),
+                          ],
+                        ),
+                      )
+                    : _filtered.isEmpty
+                        ? const _EmptyState() 
+                        : FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: ListView.separated(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              itemCount: _filtered.length,
+                              separatorBuilder: (_, __) => const SizedBox(height: 12),
+                              itemBuilder: (_, i) {
+                                return _SexoCardModern(sexo: _filtered[i]);
+                              },
+                            ),
+                          ),
+              ),
+            ],
           ),
-          Expanded(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator())
-                : _filtered.isEmpty
-                ? const _EmptyState()
-                : ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    itemCount: _filtered.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (_, i) => _SexoCard(sexo: _filtered[i]),
-                  ),
-          ),
-        ],
+        ),
       ),
+      floatingActionButton: _all.isNotEmpty
+          ? FloatingActionButton(
+              onPressed: () {
+                setState(() {
+                  _filtered = _all;
+                  _animController.reset();
+                  _animController.forward();
+                });
+              },
+              backgroundColor: theme.colorScheme.primary,
+              child: const Icon(Icons.clear_all),
+              tooltip: 'Restablecer búsqueda',
+            )
+          : null,
     );
   }
 }
 
-class _SexoCard extends StatelessWidget {
-  const _SexoCard({required this.sexo});
+class _SexoCardModern extends StatelessWidget {
+  const _SexoCardModern({Key? key, required this.sexo}) : super(key: key);
   final Sexo sexo;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return InkWell(
-      borderRadius: BorderRadius.circular(14),
-      onTap: () => debugPrint('Sexo: ${sexo.idsexo} - ${sexo.nombre}'),
-      child: Ink(
-        decoration: BoxDecoration(
-          color: scheme.primaryContainer,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: scheme.shadow.withOpacity(.12),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
+    final theme = Theme.of(context);
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 4,
+      shadowColor: theme.colorScheme.primary.withOpacity(0.3),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        splashColor: theme.colorScheme.primary.withOpacity(0.1),
+        onTap: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Seleccionaste: ${sexo.nombre} (ID: ${sexo.idsexo})'),
             ),
-          ],
-        ),
-        child: ListTile(
-          leading: CircleAvatar(
-            backgroundColor: scheme.primary,
-            child: Icon(Icons.people, color: scheme.onPrimary),
-          ),
-          title: Text(
-            sexo.nombre,
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: scheme.onPrimaryContainer,
+          );
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              colors: [
+                theme.colorScheme.primaryContainer.withOpacity(0.2),
+                theme.colorScheme.primaryContainer.withOpacity(0.05),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
           ),
-          subtitle: Text('ID: ${sexo.idsexo}'),
-          trailing: const Icon(Icons.chevron_right),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            leading: CircleAvatar(
+              radius: 26,
+              backgroundColor: theme.colorScheme.primary,
+              child: Icon(Icons.people, color: theme.colorScheme.onPrimary, size: 28),
+            ),
+            title: Text(
+              sexo.nombre,
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w600, color: theme.colorScheme.onBackground),
+            ),
+            subtitle: Text(
+              'ID: ${sexo.idsexo}',
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+            trailing: Icon(Icons.chevron_right, color: theme.colorScheme.primary),
+          ),
         ),
       ),
     );
   }
 }
-
 /* ─────────────────────────  WIDGET ESTADO VACÍO  ────────────── */
 class _EmptyState extends StatelessWidget {
   /// Mensaje que se mostrará.  Si no se envía, usa un texto genérico.
@@ -321,7 +420,7 @@ class _TelefonoPageState extends State<TelefonoPage> {
     setState(() => _loading = true);
     try {
       final r = await http.get(Uri.parse(
-          'https://educaysoft.org/apple6a/app/controllers/TelefonoController.php?action=api'));
+          'https://educaysoft.org/Ibm6aphp/app/controllers/TelefonoController.php?action=api'));
       if (r.statusCode == 200) {
         final data = (json.decode(r.body) as List)
             .map((e) => Telefono.fromJson(e))
@@ -446,7 +545,7 @@ class _EstadocivilPageState extends State<EstadocivilPage> {
     setState(() => _loading = true);
     try {
       final r = await http.get(Uri.parse(
-          'https://educaysoft.org/apple6a/app/controllers/EstadocivilController.php?action=api'));
+          'https://educaysoft.org/Ibm6aphp/app/controllers/EstadocivilController.php?action=api'));
       if (r.statusCode == 200) {
         final data = (json.decode(r.body) as List)
             .map((e) => Estadocivil.fromJson(e))
@@ -571,7 +670,7 @@ class _DireccionPageState extends State<DireccionPage> {
     setState(() => _loading = true);
     try {
       final r = await http.get(Uri.parse(
-          'https://educaysoft.org/apple6a/app/controllers/DireccionController.php?action=api'));
+          'https://educaysoft.org/Ibm6aphp/app/controllers/DireccionController.php?action=api'));
       if (r.statusCode == 200) {
         final data = (json.decode(r.body) as List)
             .map((e) => Direccion.fromJson(e))
@@ -698,7 +797,7 @@ class _PersonaPageState extends State<PersonaPage> {
     try {
       final r = await http.get(
         Uri.parse(
-          'https://educaysoft.org/apple6a/app/controllers/PersonaController.php?action=api',
+          'https://educaysoft.org/Ibm6aphp/app/controllers/PersonaController.php?action=api',
         ),
       );
       if (r.statusCode == 200) {
