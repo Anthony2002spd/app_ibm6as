@@ -401,33 +401,57 @@ class _EmptyState extends StatelessWidget {
 
 /* ───────────────────────────────────────────  TELÉFONO PAGE  ── */
 class TelefonoPage extends StatefulWidget {
-  const TelefonoPage({super.key});
+  const TelefonoPage({Key? key}) : super(key: key);
+
   @override
   State<TelefonoPage> createState() => _TelefonoPageState();
 }
 
-class _TelefonoPageState extends State<TelefonoPage> {
-  List<Telefono> _all = [], _filtered = [];
+class _TelefonoPageState extends State<TelefonoPage> with SingleTickerProviderStateMixin {
+  List<Telefono> _all = [];
+  List<Telefono> _filtered = [];
   bool _loading = true;
+
+  late final AnimationController _animController;
+  late final Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeIn,
+    );
     _fetch();
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetch() async {
     setState(() => _loading = true);
     try {
-      final r = await http.get(Uri.parse(
-          'https://educaysoft.org/Ibm6aphp/app/controllers/TelefonoController.php?action=api'));
-      if (r.statusCode == 200) {
-        final data = (json.decode(r.body) as List)
+      final response = await http.get(Uri.parse(
+        'https://educaysoft.org/Ibm6aphp/app/controllers/TelefonoController.php?action=api',
+      ));
+      if (response.statusCode == 200) {
+        final data = (json.decode(response.body) as List)
             .map((e) => Telefono.fromJson(e))
             .toList();
-        setState(() => _all = _filtered = data);
+        setState(() {
+          _all = data;
+          _filtered = data;
+        });
+        _animController.forward(from: 0.0);
       } else {
-        throw Exception('Error ${r.statusCode}');
+        throw Exception('Error ${response.statusCode}');
       }
     } catch (e) {
       debugPrint('Error Teléfono: $e');
@@ -436,88 +460,173 @@ class _TelefonoPageState extends State<TelefonoPage> {
     }
   }
 
-  void _search(String q) => setState(() => _filtered = _all
-      .where((t) =>
-          t.numero.toLowerCase().contains(q.toLowerCase()) ||
-          t.idtelefono.contains(q))
-      .toList());
+  void _search(String query) {
+    final q = query.toLowerCase();
+    setState(() {
+      _filtered = _all.where((t) {
+        final numLower = t.numero.toLowerCase();
+        final idLower = t.idtelefono.toLowerCase();
+        return numLower.contains(q) || idLower.contains(q);
+      }).toList();
+      _animController.reset();
+      _animController.forward();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return RefreshIndicator(
-      onRefresh: _fetch,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: TextField(
-              onChanged: _search,
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: cs.surfaceVariant,
-                prefixIcon: Icon(Icons.search, color: cs.primary),
-                hintText: 'Buscar Teléfono (número o ID)',
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide.none),
-              ),
-            ),
-          ),
-          Expanded(
-            child: _loading
-                ? const Center(child: CircularProgressIndicator())
-                : _filtered.isEmpty
-                    ? const _EmptyState(msg: 'No hay Teléfonos')
-                    : ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        itemCount: _filtered.length,
-                        separatorBuilder: (_, __) =>
-                            const SizedBox(height: 8),
-                        itemBuilder: (_, i) => _TelefonoCard(
-                              telefono: _filtered[i],
-                            ),
-                      ),
-          ),
-        ],
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Catálogo de Teléfonos'),
+        centerTitle: true,
+        elevation: 2,
+        backgroundColor: theme.colorScheme.primary,
       ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              theme.colorScheme.surfaceVariant.withOpacity(0.03),
+              theme.colorScheme.surfaceVariant.withOpacity(0.09),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: RefreshIndicator(
+          onRefresh: _fetch,
+          color: theme.colorScheme.primary,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: TextField(
+                  onChanged: _search,
+                  decoration: InputDecoration(
+                    hintText: 'Buscar por número o ID...',
+                    prefixIcon: Icon(Icons.search, color: theme.colorScheme.primary),
+                    filled: true,
+                    fillColor: theme.colorScheme.surface,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: _loading
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 48,
+                              height: 48,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 3.5,
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Cargando datos...',
+                              style: theme.textTheme.bodyMedium
+                                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                            ),
+                          ],
+                        ),
+                      )
+                    : _filtered.isEmpty
+                        ? const _EmptyState(msg: 'No hay Teléfonos')
+                        : FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: ListView.separated(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              itemCount: _filtered.length,
+                              separatorBuilder: (_, __) => const SizedBox(height: 12),
+                              itemBuilder: (_, i) {
+                                return _TelefonoCardModern(telefono: _filtered[i]);
+                              },
+                            ),
+                          ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      floatingActionButton: _all.isNotEmpty
+          ? FloatingActionButton(
+              onPressed: () {
+                setState(() {
+                  _filtered = _all;
+                  _animController.reset();
+                  _animController.forward();
+                });
+              },
+              backgroundColor: theme.colorScheme.primary,
+              child: const Icon(Icons.clear_all),
+              tooltip: 'Restablecer búsqueda',
+            )
+          : null,
     );
   }
 }
 
-/* ─────────────────────────────  Tarjeta  ────────────────────── */
-class _TelefonoCard extends StatelessWidget {
-  const _TelefonoCard({required this.telefono});
+class _TelefonoCardModern extends StatelessWidget {
+  const _TelefonoCardModern({Key? key, required this.telefono}) : super(key: key);
   final Telefono telefono;
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return InkWell(
-      borderRadius: BorderRadius.circular(14),
-      onTap: () => debugPrint(
-          'Teléfono: ${telefono.idtelefono} - ${telefono.numero}'),
-      child: Ink(
-        decoration: BoxDecoration(
-          color: cs.primaryContainer,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-                color: cs.shadow.withOpacity(.12),
-                blurRadius: 6,
-                offset: const Offset(0, 3))
-          ],
-        ),
-        child: ListTile(
-          leading: CircleAvatar(
-              backgroundColor: cs.primary,
-              child: Icon(Icons.phone, color: cs.onPrimary)),
-          title: Text(telefono.numero,
-              style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: cs.onPrimaryContainer)),
-          subtitle: Text('ID: ${telefono.idtelefono}'),
-          trailing: const Icon(Icons.chevron_right),
+    final theme = Theme.of(context);
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 4,
+      shadowColor: theme.colorScheme.primary.withOpacity(0.3),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        splashColor: theme.colorScheme.primary.withOpacity(0.1),
+        onTap: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Seleccionaste: ${telefono.numero} (ID: ${telefono.idtelefono})'),
+            ),
+          );
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              colors: [
+                theme.colorScheme.primaryContainer.withOpacity(0.2),
+                theme.colorScheme.primaryContainer.withOpacity(0.05),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            leading: CircleAvatar(
+              radius: 26,
+              backgroundColor: theme.colorScheme.primary,
+              child: Icon(Icons.phone, color: theme.colorScheme.onPrimary, size: 28),
+            ),
+            title: Text(
+              telefono.numero,
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w600, color: theme.colorScheme.onBackground),
+            ),
+            subtitle: Text(
+              'ID: ${telefono.idtelefono}',
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+            trailing: Icon(Icons.chevron_right, color: theme.colorScheme.primary),
+          ),
         ),
       ),
     );
