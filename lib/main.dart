@@ -1111,38 +1111,59 @@ class _DireccionCardModern extends StatelessWidget {
 
 /* ───────────────────────────────────────────────  PERSONA PAGE ─ */
 class PersonaPage extends StatefulWidget {
-  const PersonaPage({super.key});
+  const PersonaPage({Key? key}) : super(key: key);
+
   @override
   State<PersonaPage> createState() => _PersonaPageState();
 }
 
-class _PersonaPageState extends State<PersonaPage> {
-  List<Persona> _all = [], _filtered = [];
+class _PersonaPageState extends State<PersonaPage> with SingleTickerProviderStateMixin {
+  List<Persona> _all = [];
+  List<Persona> _filtered = [];
   bool _loading = true;
+
+  late final AnimationController _animController;
+  late final Animation<double> _fadeAnimation;
+
   @override
   void initState() {
     super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeIn,
+    );
     _fetch();
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetch() async {
     setState(() => _loading = true);
     try {
-      final r = await http.get(
+      final response = await http.get(
         Uri.parse(
           'https://educaysoft.org/Ibm6aphp/app/controllers/PersonaController.php?action=api',
         ),
       );
-      if (r.statusCode == 200) {
-        final data = (json.decode(r.body) as List)
+      if (response.statusCode == 200) {
+        final data = (json.decode(response.body) as List)
             .map((e) => Persona.fromJson(e))
             .toList();
         setState(() {
           _all = data;
           _filtered = data;
         });
+        _animController.forward(from: 0.0);
       } else {
-        throw Exception('Error ${r.statusCode}');
+        throw Exception('Error ${response.statusCode}');
       }
     } catch (e) {
       debugPrint('Error Persona: $e');
@@ -1151,49 +1172,184 @@ class _PersonaPageState extends State<PersonaPage> {
     }
   }
 
-  void _search(String q) => setState(
-    () => _filtered = _all
-        .where(
-          (p) =>
-              p.nombres.toLowerCase().contains(q.toLowerCase()) ||
-              p.apellidos.toLowerCase().contains(q.toLowerCase()) ||
-              p.fechanacimiento.contains(q),
-        )
-        .toList(),
-  );
+  void _search(String query) {
+    final q = query.toLowerCase();
+    setState(() {
+      _filtered = _all.where((p) {
+        final nombresLower = p.nombres.toLowerCase();
+        final apellidosLower = p.apellidos.toLowerCase();
+        final fechaLower = p.fechanacimiento.toLowerCase();
+        return nombresLower.contains(q) ||
+            apellidosLower.contains(q) ||
+            fechaLower.contains(q);
+      }).toList();
+      _animController.reset();
+      _animController.forward();
+    });
+  }
 
   @override
-  Widget build(BuildContext context) => Column(
-    children: [
-      Padding(
-        padding: const EdgeInsets.all(12),
-        child: TextField(
-          onChanged: _search,
-          decoration: const InputDecoration(
-            prefixIcon: Icon(Icons.search),
-            hintText: 'Buscar Persona (nombres, apellidos o fecha)',
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Catálogo de Personas'),
+        centerTitle: true,
+        elevation: 2,
+        backgroundColor: theme.colorScheme.primary,
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              theme.colorScheme.surfaceVariant.withOpacity(0.03),
+              theme.colorScheme.surfaceVariant.withOpacity(0.09),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: RefreshIndicator(
+          onRefresh: _fetch,
+          color: theme.colorScheme.primary,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: TextField(
+                  onChanged: _search,
+                  decoration: InputDecoration(
+                    hintText: 'Buscar por nombre, apellido o fecha...',
+                    prefixIcon: Icon(Icons.search, color: theme.colorScheme.primary),
+                    filled: true,
+                    fillColor: theme.colorScheme.surface,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: _loading
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 48,
+                              height: 48,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 3.5,
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Cargando datos...',
+                              style: theme.textTheme.bodyMedium
+                                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                            ),
+                          ],
+                        ),
+                      )
+                    : _filtered.isEmpty
+                        ? const _EmptyState(msg: 'No hay Personas')
+                        : FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: ListView.separated(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              itemCount: _filtered.length,
+                              separatorBuilder: (_, __) => const SizedBox(height: 12),
+                              itemBuilder: (_, i) {
+                                return _PersonaCardModern(persona: _filtered[i]);
+                              },
+                            ),
+                          ),
+              ),
+            ],
           ),
         ),
       ),
-      Expanded(
-        child: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : _filtered.isEmpty
-            ? const Center(child: Text('No hay Personas'))
-            : ListView.builder(
-                itemCount: _filtered.length,
-                itemBuilder: (_, i) {
-                  final p = _filtered[i];
-                  return ListTile(
-                    leading: const Icon(Icons.person),
-                    title: Text('${p.nombres} ${p.apellidos}'),
-                    subtitle: Text(
-                      'ID: ${p.idpersona} · Sexo: ${p.elsexo} · EC: ${p.elestadocivil}\nF.Nac.: ${p.fechanacimiento}',
-                    ),
-                  );
-                },
+      floatingActionButton: _all.isNotEmpty
+          ? FloatingActionButton(
+              onPressed: () {
+                setState(() {
+                  _filtered = _all;
+                  _animController.reset();
+                  _animController.forward();
+                });
+              },
+              backgroundColor: theme.colorScheme.primary,
+              child: const Icon(Icons.clear_all),
+              tooltip: 'Restablecer búsqueda',
+            )
+          : null,
+    );
+  }
+}
+
+class _PersonaCardModern extends StatelessWidget {
+  const _PersonaCardModern({Key? key, required this.persona}) : super(key: key);
+  final Persona persona;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 4,
+      shadowColor: theme.colorScheme.primary.withOpacity(0.3),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        splashColor: theme.colorScheme.primary.withOpacity(0.1),
+        onTap: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Seleccionaste: ${persona.nombres} ${persona.apellidos}\n'
+                'Nacimiento: ${persona.fechanacimiento}',
               ),
+            ),
+          );
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              colors: [
+                theme.colorScheme.primaryContainer.withOpacity(0.2),
+                theme.colorScheme.primaryContainer.withOpacity(0.05),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            leading: CircleAvatar(
+              radius: 26,
+              backgroundColor: theme.colorScheme.primary,
+              child: Icon(Icons.person, color: theme.colorScheme.onPrimary, size: 28),
+            ),
+            title: Text(
+              '${persona.nombres} ${persona.apellidos}',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.onBackground,
+              ),
+            ),
+            subtitle: Text(
+              'Nacimiento: ${persona.fechanacimiento}\nID: ${persona.idpersona}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            trailing: Icon(Icons.chevron_right, color: theme.colorScheme.primary),
+          ),
+        ),
       ),
-    ],
-  );
+    );
+  }
 }
