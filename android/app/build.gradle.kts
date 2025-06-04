@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.app_whatsapp6a"
+    namespace = "com.example.app_apple6a"
     compileSdk = flutter.compileSdkVersion.toInt()  // Asegúrate de convertirlo a Int
     ndkVersion = flutter.ndkVersion
 
@@ -19,7 +19,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.app_whatsapp6a"
+        applicationId = "com.example.app_apple6a"
         minSdk = flutter.minSdkVersion.toInt()  // Conversión a Int
         targetSdk = flutter.targetSdkVersion.toInt()  // Conversión a Int
         versionCode = flutter.versionCode?.toInt() ?: 1  // Manejo de nulo

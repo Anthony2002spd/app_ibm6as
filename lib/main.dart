@@ -1,163 +1,131 @@
-import 'package:flutter/material.dart';
+/*  ==============================================================
+    apple6a – Registro de Datos (main.dart)
+    App completa con todas las páginas y el rediseño de SexoPage
+    Compatible con Flutter 3.32 (Material 3 activado)
+    ============================================================== */
+
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-void main() {
-  runApp(MyApp()); // Cambiado el nombres de la app a MyApp
-}
+/* ─────────────────────────────────────────────  APP ROOT  ───── */
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'SICA App', // Título de la aplicación
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: MainScreen(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
+  Widget build(BuildContext context) => MaterialApp(
+    title: 'apple6a App',
+    theme: ThemeData(
+      useMaterial3: true,
+      colorSchemeSeed: Colors.blue,
+      brightness: Brightness.light,
+    ),
+    debugShowCheckedModeBanner: false,
+    home: const MainScreen(),
+  );
 }
 
+/* ─────────────────────────────────────────────  MAIN SCREEN  ── */
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
-
   @override
-  _MainScreenState createState() => _MainScreenState();
+  State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-
-  // Lista de páginas que se mostrarán en el cuerpo del Scaffold
-  // El orden aquí debe coincidir con el orden de los BottomNavigationBarItem
-  final List<Widget> _pages = [
+  final _pages = const [
     SexoPage(),
     TelefonoPage(),
     PersonaPage(),
-    EstadocivilPage(), // Nueva página para Estado Civil
-    DireccionPage(), // Nueva página para Direccion
-    Placeholder(), // Página "Acerca de" o cualquier otra que desees
+    EstadocivilPage(),
+    DireccionPage(),
+    Placeholder(), // Acerca de
   ];
 
-  // Función que se llama cuando se toca un elemento del BottomNavigationBar
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("SICA - Registro")), // Título de la AppBar
-      body: _pages[_selectedIndex], // Muestra la página seleccionada
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Sexo'),
-          BottomNavigationBarItem(icon: Icon(Icons.phone), label: 'Telefono'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Persona'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
-            label: 'Estado Civil',
-          ), // Nuevo ítem para Estado Civil
-          BottomNavigationBarItem(
-            icon: Icon(Icons.location_on),
-            label: 'Direccion',
-          ), // Nuevo ítem para Direccion
-          BottomNavigationBarItem(icon: Icon(Icons.info), label: 'Acerca de'),
-        ],
-        currentIndex:
-            _selectedIndex, // Índice del ítem seleccionado actualmente
-        onTap: _onItemTapped, // Callback cuando se toca un ítem
-        selectedItemColor: Colors.blue, // Color del ítem seleccionado
-        unselectedItemColor: Colors.grey, // Color de los ítems no seleccionados
-        type:
-            BottomNavigationBarType
-                .fixed, // Asegura que todos los items se muestren
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('apple6a • Registro')),
+    body: _pages[_selectedIndex],
+    bottomNavigationBar: BottomNavigationBar(
+      currentIndex: _selectedIndex,
+      onTap: (i) => setState(() => _selectedIndex = i),
+      type: BottomNavigationBarType.fixed,
+      selectedItemColor: Colors.blue,
+      unselectedItemColor: Colors.grey,
+      items: const [
+        BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Sexo'),
+        BottomNavigationBarItem(icon: Icon(Icons.phone), label: 'Teléfono'),
+        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Persona'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.favorite),
+          label: 'Estado Civil',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.location_on),
+          label: 'Dirección',
+        ),
+        BottomNavigationBarItem(icon: Icon(Icons.info), label: 'Acerca de'),
+      ],
+    ),
+  );
 }
 
-// --- Clases de Modelo ---
-
-// Modelo para los datos de Sexo
+/* ───────────────────────────────────────────  MODELOS DE DATOS  */
 class Sexo {
-  final String idsexo;
-  final String nombre;
-
+  final String idsexo, nombre;
   Sexo({required this.idsexo, required this.nombre});
-
-  factory Sexo.fromJson(Map<String, dynamic> json) {
-    return Sexo(idsexo: json['idsexo'].toString(), nombre: json['nombre']);
-  }
+  factory Sexo.fromJson(Map<String, dynamic> j) =>
+      Sexo(idsexo: j['idsexo'].toString(), nombre: j['nombre']);
 }
 
-// Modelo para los datos de Telefono
 class Telefono {
-  final String idtelefono;
-  final String numero;
-
+  final String idtelefono, numero;
   Telefono({required this.idtelefono, required this.numero});
-
-  factory Telefono.fromJson(Map<String, dynamic> json) {
-    return Telefono(
-      idtelefono: json['idtelefono'].toString(),
-      numero: json['numero'],
-    );
-  }
+  factory Telefono.fromJson(Map<String, dynamic> j) =>
+      Telefono(idtelefono: j['idtelefono'].toString(), numero: j['numero']);
 }
 
-// Modelo para los datos de Estadocivil
 class Estadocivil {
-  final String idestadocivil;
-  final String nombre;
-
+  final String idestadocivil, nombre;
   Estadocivil({required this.idestadocivil, required this.nombre});
-
-  factory Estadocivil.fromJson(Map<String, dynamic> json) {
-    return Estadocivil(
-      idestadocivil: json['idestadocivil'].toString(),
-      nombre: json['nombre'],
-    );
-  }
+  factory Estadocivil.fromJson(Map<String, dynamic> j) => Estadocivil(
+    idestadocivil: j['idestadocivil'].toString(),
+    nombre: j['nombre'],
+  );
 }
 
-// Modelo para los datos de Direccion
 class Direccion {
-  final String iddireccion;
-  final String calleprincipal;
-  final String callesecundaria;
-  final String numerocasa;
-
+  final String iddireccion, calleprincipal, callesecundaria, numerocasa, persona_nombres, persona_apellidos, nombre;
   Direccion({
     required this.iddireccion,
     required this.calleprincipal,
     required this.callesecundaria,
     required this.numerocasa,
+    required this.persona_nombres,
+    required this.persona_apellidos,
+    required this.nombre,
   });
-
-  factory Direccion.fromJson(Map<String, dynamic> json) {
-    return Direccion(
-      iddireccion: json['iddireccion'].toString(),
-      calleprincipal: json['calleprincipal'] ?? 'N/A',
-      callesecundaria: json['callesecundaria'] ?? 'N/A',
-      numerocasa: json['numerocasa'] ?? 'N/A',
-    );
-  }
+  factory Direccion.fromJson(Map<String, dynamic> j) => Direccion(
+    iddireccion: j['iddireccion'].toString(),
+    calleprincipal: j['calleprincipal'] ?? 'N/A',
+    callesecundaria: j['callesecundaria'] ?? 'N/A',
+    numerocasa: j['numerocasa'] ?? 'N/A',
+    persona_nombres: j['persona_nombres'] ?? 'N/A',
+    persona_apellidos: j['persona_apellidos'] ?? 'N/A',
+    nombre: j['nombre'] ?? 'N/A',
+  );
 }
 
-// Modelo para los datos de Persona
 class Persona {
-  final String idpersona;
-  final String nombres;
-  final String apellidos;
-  final String elsexo;
-  final String elestadocivil;
-  final String fechanacimiento; // Asumiendo que viene como String
-
+  final String idpersona,
+      nombres,
+      apellidos,
+      elsexo,
+      elestadocivil,
+      fechanacimiento;
   Persona({
     required this.idpersona,
     required this.nombres,
@@ -166,710 +134,634 @@ class Persona {
     required this.elestadocivil,
     required this.fechanacimiento,
   });
-
-  factory Persona.fromJson(Map<String, dynamic> json) {
-    return Persona(
-      idpersona: json['idpersona'].toString(),
-      nombres: json['nombres'] ?? 'N/A',
-      apellidos: json['apellidos'] ?? 'N/A',
-      elsexo: json['elsexo'] ?? 'N/A',
-      elestadocivil: json['elestadocivil'] ?? 'N/A',
-      fechanacimiento: json['fechanacimiento'] ?? 'N/A',
-    );
-  }
+  factory Persona.fromJson(Map<String, dynamic> j) => Persona(
+    idpersona: j['idpersona'].toString(),
+    nombres: j['nombres'] ?? 'N/A',
+    apellidos: j['apellidos'] ?? 'N/A',
+    elsexo: j['elsexo'] ?? 'N/A',
+    elestadocivil: j['elestadocivil'] ?? 'N/A',
+    fechanacimiento: j['fechanacimiento'] ?? 'N/A',
+  );
 }
 
-// --- Páginas de Contenido ---
-
-// Página para mostrar la lista de Sexo
+/* ───────────────────────────────────────────────  SEXO PAGE  ── */
 class SexoPage extends StatefulWidget {
   const SexoPage({super.key});
-
   @override
-  _SexoPageState createState() => _SexoPageState();
+  State<SexoPage> createState() => _SexoPageState();
 }
 
 class _SexoPageState extends State<SexoPage> {
-  List<Sexo> _sexoList = [];
-  List<Sexo> _filteredSexoList = [];
-  String _searchText = '';
-  bool _isLoading = true; // Para mostrar un indicador de carga
+  List<Sexo> _all = [], _filtered = [];
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchSexoData();
+    _fetch();
   }
 
-  Future<void> _fetchSexoData() async {
-    setState(() {
-      _isLoading = true; // Inicia la carga
-    });
+  Future<void> _fetch() async {
+    setState(() => _loading = true);
     try {
-      final response = await http.get(
+      final r = await http.get(
         Uri.parse(
-          'https://educaysoft.org/whatsapp6a/app/controllers/SexoController.php?action=api',
+          'https://educaysoft.org/apple6a/app/controllers/SexoController.php?action=api',
         ),
       );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+      if (r.statusCode == 200) {
+        final data = (json.decode(r.body) as List)
+            .map((e) => Sexo.fromJson(e))
+            .toList();
         setState(() {
-          _sexoList = data.map((item) => Sexo.fromJson(item)).toList();
-          _filteredSexoList = _sexoList;
+          _all = data;
+          _filtered = data;
         });
       } else {
-        throw Exception(
-          'Error al cargar datos de Sexo: ${response.statusCode}',
-        );
+        throw Exception('Error ${r.statusCode}');
       }
     } catch (e) {
-      print('Error al obtener datos de Sexo: $e');
-      // Podrías mostrar un mensaje de error al usuario aquí
+      debugPrint('Error Sexo: $e');
     } finally {
-      setState(() {
-        _isLoading = false; // Finaliza la carga
-      });
+      setState(() => _loading = false);
     }
   }
 
-  void _filterSearch(String query) {
-    setState(() {
-      _searchText = query;
-      _filteredSexoList =
-          _sexoList
-              .where(
-                (item) =>
-                    item.nombre.toLowerCase().contains(query.toLowerCase()) ||
-                    item.idsexo.contains(query),
-              )
-              .toList();
-    });
-  }
+  void _search(String q) => setState(
+    () => _filtered = _all
+        .where(
+          (s) =>
+              s.nombre.toLowerCase().contains(q.toLowerCase()) ||
+              s.idsexo.contains(q),
+        )
+        .toList(),
+  );
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Barra de búsqueda
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            onChanged: _filterSearch,
-            decoration: InputDecoration(
-              labelText: 'Buscar Sexo',
-              hintText: 'Ingrese nombres o ID',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.0),
+    final scheme = Theme.of(context).colorScheme;
+    return RefreshIndicator(
+      onRefresh: _fetch,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: TextField(
+              onChanged: _search,
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: scheme.surfaceVariant,
+                prefixIcon: Icon(Icons.search, color: scheme.primary),
+                hintText: 'Buscar Sexo (nombre o ID)',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
               ),
             ),
           ),
-        ),
-        // Lista de registros
-        Expanded(
-          child:
-              _isLoading
-                  ? Center(
-                    child: CircularProgressIndicator(),
-                  ) // Indicador de carga
-                  : _filteredSexoList.isEmpty
-                  ? Center(child: Text("No hay datos de Sexo disponibles"))
-                  : ListView.builder(
-                    itemCount: _filteredSexoList.length,
-                    itemBuilder: (context, index) {
-                      final sexo = _filteredSexoList[index];
-                      return Card(
-                        margin: EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                          vertical: 4.0,
-                        ),
-                        elevation: 2.0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                        child: ListTile(
-                          leading: Icon(Icons.people, color: Colors.blueAccent),
-                          title: Text(
-                            sexo.nombre,
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text("ID: ${sexo.idsexo}"),
-                          trailing: Icon(Icons.arrow_forward_ios, size: 16.0),
-                          onTap: () {
-                            // Acción al hacer tap en un elemento de sexo
-                            print('Sexo seleccionado: ${sexo.nombre}');
-                          },
-                        ),
-                      );
-                    },
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _filtered.isEmpty
+                ? const _EmptyState()
+                : ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    itemCount: _filtered.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (_, i) => _SexoCard(sexo: _filtered[i]),
                   ),
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 }
 
-// Página para mostrar la lista de Telefono
-class TelefonoPage extends StatefulWidget {
-  const TelefonoPage({super.key});
+class _SexoCard extends StatelessWidget {
+  const _SexoCard({required this.sexo});
+  final Sexo sexo;
 
   @override
-  _TelefonoPageState createState() => _TelefonoPageState();
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: () => debugPrint('Sexo: ${sexo.idsexo} - ${sexo.nombre}'),
+      child: Ink(
+        decoration: BoxDecoration(
+          color: scheme.primaryContainer,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: scheme.shadow.withOpacity(.12),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: ListTile(
+          leading: CircleAvatar(
+            backgroundColor: scheme.primary,
+            child: Icon(Icons.people, color: scheme.onPrimary),
+          ),
+          title: Text(
+            sexo.nombre,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: scheme.onPrimaryContainer,
+            ),
+          ),
+          subtitle: Text('ID: ${sexo.idsexo}'),
+          trailing: const Icon(Icons.chevron_right),
+        ),
+      ),
+    );
+  }
+}
+
+/* ─────────────────────────  WIDGET ESTADO VACÍO  ────────────── */
+class _EmptyState extends StatelessWidget {
+  /// Mensaje que se mostrará.  Si no se envía, usa un texto genérico.
+  const _EmptyState({this.msg = 'No hay datos'});
+
+  final String msg;
+
+  @override
+  Widget build(BuildContext context) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.inbox, size: 72, color: Colors.grey),
+            const SizedBox(height: 12),
+            Text(msg),
+          ],
+        ),
+      );
+}
+
+/* ───────────────────────────────────────────  TELÉFONO PAGE  ── */
+class TelefonoPage extends StatefulWidget {
+  const TelefonoPage({super.key});
+  @override
+  State<TelefonoPage> createState() => _TelefonoPageState();
 }
 
 class _TelefonoPageState extends State<TelefonoPage> {
-  List<Telefono> _telefonoList = [];
-  List<Telefono> _filteredTelefonoList = [];
-  String _searchText = '';
-  bool _isLoading = true; // Para mostrar un indicador de carga
+  List<Telefono> _all = [], _filtered = [];
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchTelefonoData();
+    _fetch();
   }
 
-  Future<void> _fetchTelefonoData() async {
-    setState(() {
-      _isLoading = true; // Inicia la carga
-    });
+  Future<void> _fetch() async {
+    setState(() => _loading = true);
     try {
-      final response = await http.get(
-        Uri.parse(
-          'https://educaysoft.org/whatsapp6a/app/controllers/TelefonoController.php?action=api',
-        ),
-      );
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        setState(() {
-          _telefonoList = data.map((item) => Telefono.fromJson(item)).toList();
-          _filteredTelefonoList = _telefonoList;
-        });
+      final r = await http.get(Uri.parse(
+          'https://educaysoft.org/apple6a/app/controllers/TelefonoController.php?action=api'));
+      if (r.statusCode == 200) {
+        final data = (json.decode(r.body) as List)
+            .map((e) => Telefono.fromJson(e))
+            .toList();
+        setState(() => _all = _filtered = data);
       } else {
-        throw Exception(
-          'Error al cargar datos de Telefono: ${response.statusCode}',
-        );
+        throw Exception('Error ${r.statusCode}');
       }
     } catch (e) {
-      print('Error al obtener datos de Telefono: $e');
-      // Podrías mostrar un mensaje de error al usuario aquí
+      debugPrint('Error Teléfono: $e');
     } finally {
-      setState(() {
-        _isLoading = false; // Finaliza la carga
-      });
+      setState(() => _loading = false);
     }
   }
 
-  void _filterSearch(String query) {
-    setState(() {
-      _searchText = query;
-      _filteredTelefonoList =
-          _telefonoList
-              .where(
-                (item) =>
-                    item.numero.toLowerCase().contains(query.toLowerCase()) ||
-                    item.idtelefono.contains(query),
-              )
-              .toList();
-    });
-  }
+  void _search(String q) => setState(() => _filtered = _all
+      .where((t) =>
+          t.numero.toLowerCase().contains(q.toLowerCase()) ||
+          t.idtelefono.contains(q))
+      .toList());
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Barra de búsqueda
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            onChanged: _filterSearch,
-            decoration: InputDecoration(
-              labelText: 'Buscar Telefono',
-              hintText: 'Ingrese numeros o ID',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.0),
+    final cs = Theme.of(context).colorScheme;
+    return RefreshIndicator(
+      onRefresh: _fetch,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: TextField(
+              onChanged: _search,
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: cs.surfaceVariant,
+                prefixIcon: Icon(Icons.search, color: cs.primary),
+                hintText: 'Buscar Teléfono (número o ID)',
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none),
               ),
             ),
           ),
-        ),
-        // Lista de registros
-        Expanded(
-          child:
-              _isLoading
-                  ? Center(
-                    child: CircularProgressIndicator(),
-                  ) // Indicador de carga
-                  : _filteredTelefonoList.isEmpty
-                  ? Center(child: Text("No hay datos de Telefono disponibles"))
-                  : ListView.builder(
-                    itemCount: _filteredTelefonoList.length,
-                    itemBuilder: (context, index) {
-                      final telefono = _filteredTelefonoList[index];
-                      return Card(
-                        margin: EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                          vertical: 4.0,
-                        ),
-                        elevation: 2.0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                        child: ListTile(
-                          leading: Icon(
-                            Icons.phone,
-                            color: Colors.blueAccent,
-                          ), // Icono cambiado
-                          title: Text(
-                            telefono.numero,
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text("ID: ${telefono.idtelefono}"),
-                          trailing: Icon(Icons.arrow_forward_ios, size: 16.0),
-                          onTap: () {
-                            // Acción al hacer tap en un elemento de telefono
-                            print('Telefono seleccionado: ${telefono.numero}');
-                          },
-                        ),
-                      );
-                    },
-                  ),
-        ),
-      ],
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _filtered.isEmpty
+                    ? const _EmptyState(msg: 'No hay Teléfonos')
+                    : ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        itemCount: _filtered.length,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: 8),
+                        itemBuilder: (_, i) => _TelefonoCard(
+                              telefono: _filtered[i],
+                            ),
+                      ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-// Página para mostrar la lista de Estadocivil
-class EstadocivilPage extends StatefulWidget {
-  const EstadocivilPage({super.key});
+/* ─────────────────────────────  Tarjeta  ────────────────────── */
+class _TelefonoCard extends StatelessWidget {
+  const _TelefonoCard({required this.telefono});
+  final Telefono telefono;
 
   @override
-  _EstadocivilPageState createState() => _EstadocivilPageState();
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: () => debugPrint(
+          'Teléfono: ${telefono.idtelefono} - ${telefono.numero}'),
+      child: Ink(
+        decoration: BoxDecoration(
+          color: cs.primaryContainer,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+                color: cs.shadow.withOpacity(.12),
+                blurRadius: 6,
+                offset: const Offset(0, 3))
+          ],
+        ),
+        child: ListTile(
+          leading: CircleAvatar(
+              backgroundColor: cs.primary,
+              child: Icon(Icons.phone, color: cs.onPrimary)),
+          title: Text(telefono.numero,
+              style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: cs.onPrimaryContainer)),
+          subtitle: Text('ID: ${telefono.idtelefono}'),
+          trailing: const Icon(Icons.chevron_right),
+        ),
+      ),
+    );
+  }
+}
+
+/* ─────────────────────────────────────────  ESTADOCIVIL PAGE  ─ */
+class EstadocivilPage extends StatefulWidget {
+  const EstadocivilPage({super.key});
+  @override
+  State<EstadocivilPage> createState() => _EstadocivilPageState();
 }
 
 class _EstadocivilPageState extends State<EstadocivilPage> {
-  List<Estadocivil> _estadocivilList = [];
-  List<Estadocivil> _filteredEstadocivilList = [];
-  String _searchText = '';
-  bool _isLoading = true; // Para mostrar un indicador de carga
+  List<Estadocivil> _all = [], _filtered = [];
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchEstadocivilData();
+    _fetch();
   }
 
-  Future<void> _fetchEstadocivilData() async {
-    setState(() {
-      _isLoading = true; // Inicia la carga
-    });
+  Future<void> _fetch() async {
+    setState(() => _loading = true);
     try {
-      final response = await http.get(
-        Uri.parse(
-          'https://educaysoft.org/whatsapp6a/app/controllers/EstadocivilController.php?action=api',
-        ),
-      );
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        setState(() {
-          _estadocivilList =
-              data.map((item) => Estadocivil.fromJson(item)).toList();
-          _filteredEstadocivilList = _estadocivilList;
-        });
+      final r = await http.get(Uri.parse(
+          'https://educaysoft.org/apple6a/app/controllers/EstadocivilController.php?action=api'));
+      if (r.statusCode == 200) {
+        final data = (json.decode(r.body) as List)
+            .map((e) => Estadocivil.fromJson(e))
+            .toList();
+        setState(() => _all = _filtered = data);
       } else {
-        throw Exception(
-          'Error al cargar datos de Estadocivil: ${response.statusCode}',
-        );
+        throw Exception('Error ${r.statusCode}');
       }
     } catch (e) {
-      print('Error al obtener datos de Estadocivil: $e');
-      // Podrías mostrar un mensaje de error al usuario aquí
+      debugPrint('Error Estado Civil: $e');
     } finally {
-      setState(() {
-        _isLoading = false; // Finaliza la carga
-      });
+      setState(() => _loading = false);
     }
   }
 
-  void _filterSearch(String query) {
-    setState(() {
-      _searchText = query;
-      _filteredEstadocivilList =
-          _estadocivilList
-              .where(
-                (item) =>
-                    item.nombre.toLowerCase().contains(query.toLowerCase()) ||
-                    item.idestadocivil.contains(query),
-              )
-              .toList();
-    });
-  }
+  void _search(String q) => setState(() => _filtered = _all
+      .where((e) =>
+          e.nombre.toLowerCase().contains(q.toLowerCase()) ||
+          e.idestadocivil.contains(q))
+      .toList());
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Barra de búsqueda
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            onChanged: _filterSearch,
-            decoration: InputDecoration(
-              labelText: 'Buscar Estado Civil',
-              hintText: 'Ingrese nombres o ID',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.0),
+    final cs = Theme.of(context).colorScheme;
+    return RefreshIndicator(
+      onRefresh: _fetch,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: TextField(
+              onChanged: _search,
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: cs.surfaceVariant,
+                prefixIcon: Icon(Icons.search, color: cs.primary),
+                hintText: 'Buscar Estado Civil (nombre o ID)',
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none),
               ),
             ),
           ),
-        ),
-        // Lista de registros
-        Expanded(
-          child:
-              _isLoading
-                  ? Center(
-                    child: CircularProgressIndicator(),
-                  ) // Indicador de carga
-                  : _filteredEstadocivilList.isEmpty
-                  ? Center(
-                    child: Text("No hay datos de Estado Civil disponibles"),
-                  )
-                  : ListView.builder(
-                    itemCount: _filteredEstadocivilList.length,
-                    itemBuilder: (context, index) {
-                      final estadocivil = _filteredEstadocivilList[index];
-                      return Card(
-                        margin: EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                          vertical: 4.0,
-                        ),
-                        elevation: 2.0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                        child: ListTile(
-                          leading: Icon(
-                            Icons.favorite,
-                            color: Colors.redAccent,
-                          ), // Icono
-                          title: Text(
-                            estadocivil.nombre,
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text("ID: ${estadocivil.idestadocivil}"),
-                          trailing: Icon(Icons.arrow_forward_ios, size: 16.0),
-                          onTap: () {
-                            // Acción al hacer tap en un elemento de estado civil
-                            print(
-                              'Estado Civil seleccionado: ${estadocivil.nombre}',
-                            );
-                          },
-                        ),
-                      );
-                    },
-                  ),
-        ),
-      ],
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _filtered.isEmpty
+                    ? const _EmptyState(msg: 'No hay Estados Civiles')
+                    : ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        itemCount: _filtered.length,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: 8),
+                        itemBuilder: (_, i) =>
+                            _EstadoCivilCard(estado: _filtered[i]),
+                      ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-// Página para mostrar la lista de Direccion
-class DireccionPage extends StatefulWidget {
-  const DireccionPage({super.key});
+/* ─────────────────────────────  Tarjeta  ────────────────────── */
+class _EstadoCivilCard extends StatelessWidget {
+  const _EstadoCivilCard({required this.estado});
+  final Estadocivil estado;
 
   @override
-  _DireccionPageState createState() => _DireccionPageState();
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: () => debugPrint(
+          'Estado Civil: ${estado.idestadocivil} - ${estado.nombre}'),
+      child: Ink(
+        decoration: BoxDecoration(
+          color: cs.primaryContainer,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+                color: cs.shadow.withOpacity(.12),
+                blurRadius: 6,
+                offset: const Offset(0, 3))
+          ],
+        ),
+        child: ListTile(
+          leading: CircleAvatar(
+              backgroundColor: cs.primary,
+              child: Icon(Icons.favorite, color: cs.onPrimary)),
+          title: Text(estado.nombre,
+              style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: cs.onPrimaryContainer)),
+          subtitle: Text('ID: ${estado.idestadocivil}'),
+          trailing: const Icon(Icons.chevron_right),
+        ),
+      ),
+    );
+  }
+}
+
+
+/* ────────────────────────────────────────────  DIRECCIÓN PAGE  ─ */
+class DireccionPage extends StatefulWidget {
+  const DireccionPage({super.key});
+  @override
+  State<DireccionPage> createState() => _DireccionPageState();
 }
 
 class _DireccionPageState extends State<DireccionPage> {
-  List<Direccion> _direccionList = [];
-  List<Direccion> _filteredDireccionList = [];
-  String _searchText = '';
-  bool _isLoading = true; // Para mostrar un indicador de carga
+  List<Direccion> _all = [], _filtered = [];
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchDireccionData();
+    _fetch();
   }
 
-  Future<void> _fetchDireccionData() async {
-    setState(() {
-      _isLoading = true; // Inicia la carga
-    });
+  Future<void> _fetch() async {
+    setState(() => _loading = true);
     try {
-      // Replace with your actual API endpoint for Direccion
-      final response = await http.get(
-        Uri.parse(
-          'https://educaysoft.org/whatsapp6a/app/controllers/DireccionController.php?action=api',
-        ),
-      );
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        setState(() {
-          _direccionList =
-              data.map((item) => Direccion.fromJson(item)).toList();
-          _filteredDireccionList = _direccionList;
-        });
+      final r = await http.get(Uri.parse(
+          'https://educaysoft.org/apple6a/app/controllers/DireccionController.php?action=api'));
+      if (r.statusCode == 200) {
+        final data = (json.decode(r.body) as List)
+            .map((e) => Direccion.fromJson(e))
+            .toList();
+        setState(() => _all = _filtered = data);
       } else {
-        throw Exception(
-          'Error al cargar datos de Direccion: ${response.statusCode}',
-        );
+        throw Exception('Error ${r.statusCode}');
       }
     } catch (e) {
-      print('Error al obtener datos de Direccion: $e');
-      // Podrías mostrar un mensaje de error al usuario aquí
+      debugPrint('Error Dirección: $e');
     } finally {
-      setState(() {
-        _isLoading = false; // Finaliza la carga
-      });
+      setState(() => _loading = false);
     }
   }
 
-  void _filterSearch(String query) {
-    setState(() {
-      _searchText = query;
-      _filteredDireccionList =
-          _direccionList
-              .where(
-                (item) =>
-                    item.calleprincipal.toLowerCase().contains(
-                      query.toLowerCase(),
-                    ) ||
-                    item.callesecundaria.toLowerCase().contains(
-                      query.toLowerCase(),
-                    ) ||
-                    item.numerocasa.toLowerCase().contains(
-                      query.toLowerCase(),
-                    ) ||
-                    item.iddireccion.contains(query),
-              )
-              .toList();
-    });
-  }
+  void _search(String q) => setState(() => _filtered = _all
+      .where((d) =>
+          d.calleprincipal.toLowerCase().contains(q.toLowerCase()) ||
+          d.callesecundaria.toLowerCase().contains(q.toLowerCase()) ||
+          d.numerocasa.toLowerCase().contains(q.toLowerCase()) ||
+          d.iddireccion.contains(q))
+      .toList());
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Barra de búsqueda
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            onChanged: _filterSearch,
-            decoration: InputDecoration(
-              labelText: 'Buscar Direccion',
-              hintText: 'Ingrese calle principal, secundaria, número o ID',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.0),
+    final cs = Theme.of(context).colorScheme;
+    return RefreshIndicator(
+      onRefresh: _fetch,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: TextField(
+              onChanged: _search,
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: cs.surfaceVariant,
+                prefixIcon: Icon(Icons.search, color: cs.primary),
+                hintText: 'Buscar Dirección (calles, número o ID)',
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none),
               ),
             ),
           ),
-        ),
-        // Lista de registros
-        Expanded(
-          child:
-              _isLoading
-                  ? Center(
-                    child: CircularProgressIndicator(),
-                  ) // Indicador de carga
-                  : _filteredDireccionList.isEmpty
-                  ? Center(child: Text("No hay datos de Dirección disponibles"))
-                  : ListView.builder(
-                    itemCount: _filteredDireccionList.length,
-                    itemBuilder: (context, index) {
-                      final direccion = _filteredDireccionList[index];
-                      return Card(
-                        margin: EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                          vertical: 4.0,
-                        ),
-                        elevation: 2.0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                        child: ListTile(
-                          leading: Icon(
-                            Icons.location_on,
-                            color: Colors.orange,
-                          ),
-                          title: Text(
-                            "Calle Principal: ${direccion.calleprincipal}",
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("ID: ${direccion.iddireccion}"),
-                              Text(
-                                "Calle Secundaria: ${direccion.callesecundaria}",
-                              ),
-                              Text("Número Casa: ${direccion.numerocasa}"),
-                            ],
-                          ),
-                          trailing: Icon(Icons.arrow_forward_ios, size: 16.0),
-                          onTap: () {
-                            // Acción al hacer tap en un elemento de direccion
-                            print(
-                              'Dirección seleccionada: ${direccion.calleprincipal}',
-                            );
-                          },
-                        ),
-                      );
-                    },
-                  ),
-        ),
-      ],
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _filtered.isEmpty
+                    ? const _EmptyState(msg: 'No hay Direcciones')
+                    : ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        itemCount: _filtered.length,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: 8),
+                        itemBuilder: (_, i) =>
+                            _DireccionCard(dir: _filtered[i]),
+                      ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-// Página para mostrar la lista de Persona
-class PersonaPage extends StatefulWidget {
-  const PersonaPage({super.key});
+/* ─────────────────────────────  Tarjeta  ────────────────────── */
+class _DireccionCard extends StatelessWidget {
+  const _DireccionCard({required this.dir});
+  final Direccion dir;
 
   @override
-  _PersonaPageState createState() => _PersonaPageState();
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: () => debugPrint(
+          'Dirección: ${dir.nombre} - ${dir.persona_nombres}'),
+      child: Ink(
+        decoration: BoxDecoration(
+          color: cs.primaryContainer,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+                color: cs.shadow.withOpacity(.12),
+                blurRadius: 6,
+                offset: const Offset(0, 3))
+          ],
+        ),
+        child: ListTile(
+          leading: CircleAvatar(
+              backgroundColor: cs.primary,
+              child: Icon(Icons.location_on, color: cs.onPrimary)),
+          title: Text(dir.nombre,
+              style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: cs.onPrimaryContainer)),
+          subtitle: Text(
+              '• ${dir.persona_nombres} ${dir.persona_apellidos}\nID: ${dir.iddireccion}'),
+          trailing: const Icon(Icons.chevron_right),
+        ),
+      ),
+    );
+  }
+}
+
+/* ───────────────────────────────────────────────  PERSONA PAGE ─ */
+class PersonaPage extends StatefulWidget {
+  const PersonaPage({super.key});
+  @override
+  State<PersonaPage> createState() => _PersonaPageState();
 }
 
 class _PersonaPageState extends State<PersonaPage> {
-  List<Persona> _personaList = [];
-  List<Persona> _filteredPersonaList = [];
-  String _searchText = '';
-  bool _isLoading = true; // Para mostrar un indicador de carga
-
+  List<Persona> _all = [], _filtered = [];
+  bool _loading = true;
   @override
   void initState() {
     super.initState();
-    _fetchPersonaData();
+    _fetch();
   }
 
-  Future<void> _fetchPersonaData() async {
-    setState(() {
-      _isLoading = true; // Inicia la carga
-    });
+  Future<void> _fetch() async {
+    setState(() => _loading = true);
     try {
-      final response = await http.get(
+      final r = await http.get(
         Uri.parse(
-          'https://educaysoft.org/whatsapp6a/app/controllers/PersonaController.php?action=api',
+          'https://educaysoft.org/apple6a/app/controllers/PersonaController.php?action=api',
         ),
       );
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+      if (r.statusCode == 200) {
+        final data = (json.decode(r.body) as List)
+            .map((e) => Persona.fromJson(e))
+            .toList();
         setState(() {
-          _personaList = data.map((item) => Persona.fromJson(item)).toList();
-          _filteredPersonaList = _personaList;
+          _all = data;
+          _filtered = data;
         });
       } else {
-        throw Exception(
-          'Error al cargar datos de Persona: ${response.statusCode}',
-        );
+        throw Exception('Error ${r.statusCode}');
       }
     } catch (e) {
-      print('Error al obtener datos de Persona: $e');
-      // Podrías mostrar un mensaje de error al usuario aquí
+      debugPrint('Error Persona: $e');
     } finally {
-      setState(() {
-        _isLoading = false; // Finaliza la carga
-      });
+      setState(() => _loading = false);
     }
   }
 
-  void _filterSearch(String query) {
-    setState(() {
-      _searchText = query;
-      _filteredPersonaList =
-          _personaList
-              .where(
-                (item) =>
-                    item.nombres.toLowerCase().contains(query.toLowerCase()) ||
-                    item.apellidos.toLowerCase().contains(
-                      query.toLowerCase(),
-                    ) ||
-                    item.fechanacimiento.contains(query),
-              )
-              .toList();
-    });
-  }
+  void _search(String q) => setState(
+    () => _filtered = _all
+        .where(
+          (p) =>
+              p.nombres.toLowerCase().contains(q.toLowerCase()) ||
+              p.apellidos.toLowerCase().contains(q.toLowerCase()) ||
+              p.fechanacimiento.contains(q),
+        )
+        .toList(),
+  );
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Barra de búsqueda
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            onChanged: _filterSearch,
-            decoration: InputDecoration(
-              labelText: 'Buscar Persona',
-              hintText: 'Ingrese nombres, apellidos o fecha', // Actualizado
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-            ),
+  Widget build(BuildContext context) => Column(
+    children: [
+      Padding(
+        padding: const EdgeInsets.all(12),
+        child: TextField(
+          onChanged: _search,
+          decoration: const InputDecoration(
+            prefixIcon: Icon(Icons.search),
+            hintText: 'Buscar Persona (nombres, apellidos o fecha)',
           ),
         ),
-        // Lista de registros
-        Expanded(
-          child:
-              _isLoading
-                  ? Center(
-                    child: CircularProgressIndicator(),
-                  ) // Indicador de carga
-                  : _filteredPersonaList.isEmpty
-                  ? Center(child: Text("No hay datos de Persona disponibles"))
-                  : ListView.builder(
-                    itemCount: _filteredPersonaList.length,
-                    itemBuilder: (context, index) {
-                      final persona = _filteredPersonaList[index];
-                      return Card(
-                        margin: EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                          vertical: 4.0,
-                        ),
-                        elevation: 2.0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                        child: ListTile(
-                          leading: Icon(Icons.person, color: Colors.green),
-                          title: Text(
-                            "${persona.nombres} ${persona.apellidos}",
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "ID: ${persona.idpersona}",
-                              ), // Agregado ID para claridad
-                              Text(
-                                "Fecha Nacimiento: ${persona.fechanacimiento}",
-                              ),
-                              Text("Sexo: ${persona.elsexo}"),
-                              Text("Estado Civil: ${persona.elestadocivil}"),
-                            ],
-                          ),
-                          trailing: Icon(Icons.arrow_forward_ios, size: 16.0),
-                          onTap: () {
-                            // Acción al hacer tap en un elemento de persona
-                            print(
-                              'Persona seleccionada: ${persona.nombres} ${persona.apellidos}',
-                            );
-                          },
-                        ),
-                      );
-                    },
-                  ),
-        ),
-      ],
-    );
-  }
+      ),
+      Expanded(
+        child: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : _filtered.isEmpty
+            ? const Center(child: Text('No hay Personas'))
+            : ListView.builder(
+                itemCount: _filtered.length,
+                itemBuilder: (_, i) {
+                  final p = _filtered[i];
+                  return ListTile(
+                    leading: const Icon(Icons.person),
+                    title: Text('${p.nombres} ${p.apellidos}'),
+                    subtitle: Text(
+                      'ID: ${p.idpersona} · Sexo: ${p.elsexo} · EC: ${p.elestadocivil}\nF.Nac.: ${p.fechanacimiento}',
+                    ),
+                  );
+                },
+              ),
+      ),
+    ],
+  );
 }

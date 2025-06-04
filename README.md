@@ -1,4 +1,4 @@
-# app_whatsapp6a
+# app_apple6a
 
 A new Flutter project.
 

@@ -13,21 +13,18 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Datos API - Grupo Whatsapp6a',
+      title: 'Datos API - Grupo apple6a',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        appBarTheme: const AppBarTheme(
-          centerTitle: true,
-          elevation: 4,
-        ),
+        appBarTheme: const AppBarTheme(centerTitle: true, elevation: 4),
         cardTheme: const CardThemeData(
-        elevation: 2,
-        margin: EdgeInsets.all(8),
-        shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(12)),
-       ),
+          elevation: 2,
+          margin: EdgeInsets.all(8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          ),
+        ),
       ),
-    ),
       home: const ApiDataViewer(),
       debugShowCheckedModeBanner: false,
     );
@@ -41,7 +38,8 @@ class ApiDataViewer extends StatefulWidget {
   State<ApiDataViewer> createState() => _ApiDataViewerState();
 }
 
-class _ApiDataViewerState extends State<ApiDataViewer> with SingleTickerProviderStateMixin {
+class _ApiDataViewerState extends State<ApiDataViewer>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List<dynamic> sexos = [];
   List<dynamic> telefonos = [];
@@ -52,11 +50,16 @@ class _ApiDataViewerState extends State<ApiDataViewer> with SingleTickerProvider
   DateTime? lastUpdateTime;
 
   final Map<String, String> apiEndpoints = {
-    'Sexos': 'https://educaysoft.org/whatsapp6a/app/controllers/SexoController.php?action=api',
-    'Teléfonos': 'https://educaysoft.org/whatsapp6a/app/controllers/TelefonoController.php?action=api',
-    'Estados Civiles': 'https://educaysoft.org/whatsapp6a/app/controllers/EstadocivilController.php?action=api',
-    'Direcciones': 'https://educaysoft.org/whatsapp6a/app/controllers/DireccionController.php?action=api',
-    'Personas': 'https://educaysoft.org/whatsapp6a/app/controllers/PersonaController.php?action=api',
+    'Sexos':
+        'https://educaysoft.org/apple6a/app/controllers/SexoController.php?action=api',
+    'Teléfonos':
+        'https://educaysoft.org/apple6a/app/controllers/TelefonoController.php?action=api',
+    'Estados Civiles':
+        'https://educaysoft.org/apple6a/app/controllers/EstadocivilController.php?action=api',
+    'Direcciones':
+        'https://educaysoft.org/apple6a/app/controllers/DireccionController.php?action=api',
+    'Personas':
+        'https://educaysoft.org/apple6a/app/controllers/PersonaController.php?action=api',
   };
 
   @override
@@ -116,7 +119,7 @@ class _ApiDataViewerState extends State<ApiDataViewer> with SingleTickerProvider
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Datos API - Grupo Whatsapp6a'),
+        title: const Text('Datos API - Grupo apple6a'),
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
@@ -206,7 +209,9 @@ class DataListView extends StatelessWidget {
                             children: [
                               TextSpan(
                                 text: '${entry.key}: ',
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                               TextSpan(text: '${entry.value}'),
                             ],
@@ -264,9 +269,18 @@ class PersonasListView extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      _buildInfoRow('Fecha Nacimiento', persona['fechanacimiento']),
-                      _buildInfoRow('Sexo', '${persona['sexo_nombre']} (ID: ${persona['idsexo']})'),
-                      _buildInfoRow('Estado Civil', '${persona['estadocivil_nombre']} (ID: ${persona['idestadocivil']})'),
+                      _buildInfoRow(
+                        'Fecha Nacimiento',
+                        persona['fechanacimiento'],
+                      ),
+                      _buildInfoRow(
+                        'Sexo',
+                        '${persona['sexo_nombre']} (ID: ${persona['idsexo']})',
+                      ),
+                      _buildInfoRow(
+                        'Estado Civil',
+                        '${persona['estadocivil_nombre']} (ID: ${persona['idestadocivil']})',
+                      ),
                     ],
                   ),
                 ),
@@ -312,17 +326,13 @@ class AboutTab extends StatelessWidget {
             child: CircleAvatar(
               radius: 50,
               backgroundColor: Colors.blue,
-              child: Icon(
-                Icons.group,
-                size: 50,
-                color: Colors.white,
-              ),
+              child: Icon(Icons.group, size: 50, color: Colors.white),
             ),
           ),
           const SizedBox(height: 20),
           const Center(
             child: Text(
-              'Grupo Whatsapp6a',
+              'Grupo apple6a',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
